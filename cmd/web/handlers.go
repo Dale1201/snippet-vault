@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	// "html/template"
+	"html/template"
 	"net/http"
 	"strconv"
 
@@ -49,7 +49,7 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
-	// fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
+
 	s, err := app.snippets.Get(id)
 
 	if err == models.ErrNoRecord {
@@ -60,7 +60,24 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%v", s)
+	data := &templateData{Snippet: s}
+
+	files := []string{
+		"../../ui/html/show.page.tmpl",
+		"../../ui/html/base.layout.tmpl",
+		"../../ui/html/footer.partial.tmpl",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	err = ts.Execute(w, data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 
 }
 
